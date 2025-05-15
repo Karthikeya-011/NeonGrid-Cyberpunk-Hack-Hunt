@@ -1,0 +1,34 @@
+NeonGrid: Cyberpunk Hack Hunt
+NeonGrid: Cyberpunk Hack Hunt is a futuristic, cyberpunk-themed interactive hacking puzzle game. It challenges players to solve riddles and coding problems while immersing them in a neon-lit hacking world.
+
+The project is implemented as:
+
+A web-based front end using HTML, CSS, and JavaScript for an animated, sound-enhanced interactive experience.
+
+A Python CLI (command-line interface) version that recreates the same game logic with text animations and user input prompts, perfect for terminal play.
+
+Python CLI Overview
+The Python script uses timed text printing (delay_print) to simulate typing, and presents 8 clues related to cyberpunk, logic, and Python programming. The player inputs answers for each clue, and the script evaluates correctness, keeping score. At the end, it provides a success or failure message based on the player’s performance.
+
+This combination showcases how the same game concept can be delivered both as a web app and a console app, using complementary technologies.
+
+
+🚀 Features
+🧠 8 unique clues mixing riddles, code challenges, and logic puzzles
+
+💻 Two versions of the game:
+
+A web-based version (HTML + JS) with audio feedback and retro vibes
+
+A Python CLI version with terminal animations and interactive gameplay
+
+🎧 Cyberpunk-inspired sound effects and animated text
+
+
+🛠️ Technologies Used
+Frontend: HTML, CSS, JavaScript, MP3 sound effects
+
+Backend (CLI version): Python 3
+
+
+
