@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NeonGrid: Cyberpunk Hack Hunt</title>
+  <style>
+    body {
+      background-color: black;
+      color: #00ffcc;
+      font-family: 'Courier New', Courier, monospace;
+      padding: 20px;
+      overflow-y: auto;
+      height: 100vh;
+      margin: 0;
+    }
+
+    h1 {
+      text-align: center;
+      color: #00ffcc;
+      text-shadow: 0 0 10px #00ffcc;
+    }
+
+    #terminal {
+      white-space: pre-line;
+      animation: flicker 1.5s infinite alternate;
+      font-size: 1.1rem;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    @keyframes flicker {
+      0% { opacity: 1; text-shadow: 0 0 10px #00ffcc; }
+      50% { opacity: 0.8; text-shadow: 0 0 5px #00ffcc; }
+      100% { opacity: 1; text-shadow: 0 0 15px #00ffcc; }
+    }
+
+    .glitch {
+      animation: glitch 1s infinite;
+    }
+
+    @keyframes glitch {
+      0% { transform: skew(0deg); }
+      20% { transform: skew(2deg); }
+      40% { transform: skew(-2deg); }
+      60% { transform: skew(1deg); }
+      80% { transform: skew(-1deg); }
+      100% { transform: skew(0deg); }
+    }
+
+    input, button {
+      background-color: #111;
+      border: 1px solid #00ffcc;
+      color: #00ffcc;
+      padding: 6px;
+      font-family: 'Courier New';
+      margin-top: 10px;
+      animation: flicker 2s infinite alternate;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: repeating-linear-gradient(
+        to right, #00ffcc10, #00ffcc10 1px, transparent 1px, transparent 20px
+      ),
+      repeating-linear-gradient(
+        to bottom, #00ffcc10, #00ffcc10 1px, transparent 1px, transparent 20px
+      );
+      z-index: 0;
+      animation: gridMove 20s linear infinite;
+    }
+
+    @keyframes gridMove {
+      from { background-position: 0 0; }
+      to { background-position: 100px 100px; }
+    }
+
+    #startScreen {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.9);
+      color: #00ffcc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      z-index: 999;
+      cursor: pointer;
+      text-align: center;
+      padding: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <div id="startScreen">▶ Click to start the Hack Hunt</div>
+
+  <h1 class="glitch">⚡ NeonGrid: Cyberpunk Hack Hunt ⚡</h1>
+  <div id="terminal" class="glitch"></div>
+  <input id="userInput" type="text" style="display:none" autocomplete="off" />
+  <button id="submitBtn" style="display:none">Submit</button>
+
+  <!-- Sound Files -->
+  <audio id="typeSound" src="type.mp3" preload="auto"></audio>
+  <audio id="enterSound" src="enter.mp3" preload="auto"></audio>
+
+  <script>
+    const terminal = document.getElementById("terminal");
+    const input = document.getElementById("userInput");
+    const submitBtn = document.getElementById("submitBtn");
+    const typeSound = document.getElementById("typeSound");
+    const enterSound = document.getElementById("enterSound");
+    const startScreen = document.getElementById("startScreen");
+
+    const delay = ms => new Promise(res => setTimeout(res, ms));
+
+    const delayPrint = async (text) => {
+      for (let c of text) {
+        terminal.innerHTML += c;
+        if (c.trim() !== "") {
+          typeSound.pause();
+          typeSound.currentTime = 0;
+          typeSound.play();
+        }
+        await delay(25);
+      }
+      terminal.innerHTML += "\n";
+      terminal.scrollTop = terminal.scrollHeight;
+    };
+
+    let score = 0, step = 0, keycode = Math.floor(Math.random() * 11) + 1000, attempts = 0;
+
+    const clues = [
+      async () => {
+        await delayPrint("Welcome to NeonGrid: Cyberpunk Hack Hunt.");
+        await delayPrint("The year is 2125. Megacities are ruled by data.");
+        await delayPrint("Your mission: Retrieve the lost treasure of the old net.");
+        await delayPrint("\nPress Enter to jack in...");
+        showInput(() => nextClue());
+      },
+      async () => {
+        await delayPrint("\nCLUE 1: A signal bounces off three towers every 5 seconds.");
+        await delayPrint("Tower A hears it at 0s, Tower B at 5s, Tower C at 10s.");
+        ask("Which tower is the source of the signal? (A/B/C):", async (ans) => {
+          terminal.innerHTML += `> Your answer: ${ans}\n`;
+          if (ans.toUpperCase() === "C") { score++; await delayPrint("✓ Correct"); }
+          else await delayPrint("✗ Incorrect");
+          nextClue();
+        });
+      },
+      async () => {
+        await delayPrint("\nCLUE 2: Translate 'H@ck3r_4L1v3' from leetspeak.");
+        ask("Your answer:", async (ans) => {
+          terminal.innerHTML += `> Your answer: ${ans}\n`;
+          if (ans.toLowerCase() === "hacker_alive") { score++; await delayPrint("✓ Correct"); }
+          else await delayPrint("✗ Incorrect");
+          nextClue();
+        });
+      },
+      async () => {
+        await delayPrint("\nCLUE 3: Guess the vault keycode (1000-1010). You have 3 tries.");
+        ask("Enter keycode:", async (ans) => {
+          let guess = parseInt(ans);
+          terminal.innerHTML += `> Your answer: ${guess}\n`;
+          if (guess === keycode) {
+            score++; await delayPrint("✓ Correct keycode!");
+            nextClue();
+          } else if (++attempts >= 3) {
+            await delayPrint("✗ Too many tries.");
+            nextClue();
+          } else {
+            await delayPrint(`✗ Access Denied. Hint: ${guess < keycode ? "Higher" : "Lower"}`);
+          }
+        }, true);
+      },
+      async () => {
+        await delayPrint("\nCLUE 4: Riddle - 'I speak without a mouth... What am I?'");
+        ask("Your answer:", async (ans) => {
+          terminal.innerHTML += `> Your answer: ${ans}\n`;
+          if (ans.toLowerCase() === "echo") { score++; await delayPrint("✓ Correct"); }
+          else await delayPrint("✗ Incorrect");
+          nextClue();
+        });
+      },
+      async () => {
+        await delayPrint("\nCLUE 5: >>> print(\"2\" + \"2\")");
+        ask("What is the output?", async (ans) => {
+          terminal.innerHTML += `> Your answer: ${ans}\n`;
+          if (ans === "22") { score++; await delayPrint("✓ Correct"); }
+          else await delayPrint("✗ Incorrect");
+          nextClue();
+        });
+      },
+      async () => {
+        await delayPrint("\nCLUE 6: >>> print(bool('False'))");
+        ask("What is the output?", async (ans) => {
+          terminal.innerHTML += `> Your answer: ${ans}\n`;
+          if (ans.toLowerCase() === "true") { score++; await delayPrint("✓ Correct"); }
+          else await delayPrint("✗ Incorrect");
+          nextClue();
+        });
+      },
+      async () => {
+        await delayPrint("\nCLUE 7: >>> x = [0,1,2,3]; print(x[::-1])");
+        ask("What is printed?", async (ans) => {
+          terminal.innerHTML += `> Your answer: ${ans}\n`;
+          const cleaned = ans.replace(/\s+/g, "");
+          if (cleaned === "[3,2,1,0]") { score++; await delayPrint("✓ Correct"); }
+          else await delayPrint("✗ Incorrect");
+          nextClue();
+        });
+      },
+      async () => {
+        await delayPrint("\nCLUE 8: >>> a = 'cyber'; b = 'punk'; print(a + b)");
+        ask("What is the output?", async (ans) => {
+          terminal.innerHTML += `> Your answer: ${ans}\n`;
+          if (ans.toLowerCase() === "cyberpunk") { score++; await delayPrint("✓ Correct"); }
+          else await delayPrint("✗ Incorrect");
+          endGame();
+        });
+      }
+    ];
+
+    const showInput = (callback) => {
+      input.style.display = "block";
+      input.value = "";
+      submitBtn.style.display = "block";
+      submitBtn.onclick = () => {
+        enterSound.play();
+        input.style.display = "none";
+        submitBtn.style.display = "none";
+        callback(input.value.trim());
+      };
+    };
+
+    const ask = (promptText, callback, repeat = false) => {
+      delayPrint(promptText);
+      input.style.display = "block";
+      input.value = "";
+      submitBtn.style.display = "block";
+      submitBtn.onclick = () => {
+        enterSound.play();
+        const value = input.value.trim();
+        if (!repeat) {
+          input.style.display = "none";
+          submitBtn.style.display = "none";
+        }
+        callback(value);
+      };
+    };
+
+    const nextClue = () => {
+      step++;
+      if (step < clues.length) clues[step]();
+    };
+
+    const endGame = async () => {
+      await delayPrint(`\nYou solved ${score} out of 8 clues.`);
+      if (score >= 5) {
+        await delayPrint("\nACCESS GRANTED: Treasure found in NeonGrid. You're a legend.");
+      } else {
+        await delayPrint("\nACCESS DENIED: The vault remains sealed.");
+      }
+    };
+
+    startScreen.addEventListener("click", () => {
+      startScreen.style.display = "none";
+      clues[0](); // Start the game
+    });
+  </script>
+</body>
+</html>
